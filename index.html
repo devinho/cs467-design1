@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!--
+Example code for bar charts taken from
+http://alignedleft.com/tutorials/d3/making-a-bar-chart
+https://bl.ocks.org/mbostock/3885304
+
+-->
+<head>
+    <script src="jquery-1.12.1.min.js"></script>
+    <script src="bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="bootstrap-3.3.6-dist/css/bootstrap.min.css">
+</head>
+<meta charset="utf-8">
+<style>
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #404040;
+        shape-rendering: crispEdges;
+        color: #404040;
+    }
+    .axis text {
+        font-family: OpenSymbol,serif;
+        font-size: 11px;
+        color: #404040;
+    }
+
+
+
+    rect {
+        -moz-transition: all 0.3s;
+        -webkit-transition: all 0.3s;
+        -o-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+    rect:hover{
+        /*fill: gray;*/
+    }
+
+    @font-face {
+        font-family: "OpenSymbol";
+        src: url("Muli/Muli-Regular.ttf") format("truetype");
+    }
+
+    .text {
+        font-family: OpenSymbol,sans-serif;
+        color: #404040;
+    }
+
+</style>
+<body>
+<div style="text-align: center;">
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="row" style="height: 100px;">
+                </div>
+                <div id="graph"></div></div>
+            <div class="col-md-1 container"></div>
+            <div class="col-md-3 container">
+                <div class="row text-left" style="height: 200px;">
+                    <h1 class="text" style="height: 30px;"></h1>
+                    <img src="color-bar&title-250.jpg"/>
+                </div>
+                <div class="row" style="height: 120px;">
+                    <div class="text text-left">
+                        <label>
+                            Keywords
+                        </label>
+                        <div class="text" id="keyword" style="width: 250px">
+                        </div>
+                    </div>
+                </div>
+                <div class="row text text-left">
+                    <label>
+                        Screenshot
+                    </label>
+                    <div id ="screenshot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="d3/d3.min.js"></script>
+<script>
+    var padding = 30;
+    var w = 800;
+    var h = 450;
+
+    var dataset = [
+                {"chatAmount": 2, "mood": "positive", "moodColor": "hsla(263.44004, 66%, 69%, 1)", "time": 10, "keywords": "won "},
+                {"chatAmount": 2, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 20, "keywords": ""},
+                {"chatAmount": 3, "mood": "neutral", "moodColor": "hsla(290, 66%, 66%, 1)", "time": 30, "keywords": "dmg "},
+                {"chatAmount": 3, "mood": "negative", "moodColor": "hsla(353.12768, 66%, 66%, 1)", "time": 40, "keywords": "caps stop NotJonathanLee Wohoo "},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(306.89226, 66%, 63%, 1)", "time": 50, "keywords": ""},
+                {"chatAmount": 5, "mood": "neutral", "moodColor": "hsla(290, 66%, 60%, 1)", "time": 60, "keywords": "black HS streamer LEL Subscribe YouTube channel lol "},
+                {"chatAmount": 7, "mood": "positive", "moodColor": "hsla(240.90095, 66%, 54%, 1)", "time": 70, "keywords": "LUCKY LEL balls SKILL ESPOS "},
+                {"chatAmount": 10, "mood": "negative", "moodColor": "hsla(329.47335, 66%, 45%, 1)", "time": 80, "keywords": "LUL close wan esports balls "},
+                {"chatAmount": 8, "mood": "neutral", "moodColor": "hsla(290, 66%, 51%, 1)", "time": 90, "keywords": "giants doubt wings Naxxramas loss ?????? "},
+                {"chatAmount": 7, "mood": "positive", "moodColor": "hsla(241.75522999999998, 66%, 54%, 1)", "time": 100, "keywords": "wpm SUC SKILL RNG "},
+                {"chatAmount": 3, "mood": "neutral", "moodColor": "hsla(290, 66%, 66%, 1)", "time": 110, "keywords": "giants god "},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(314.08616, 66%, 63%, 1)", "time": 120, "keywords": "reno Digital athletics GIANTS "},
+                {"chatAmount": 9, "mood": "negative", "moodColor": "hsla(345.98572, 66%, 48%, 1)", "time": 130, "keywords": "game NO GIANTS rip giands skill friend GIANTS "},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(294.66865, 66%, 63%, 1)", "time": 140, "keywords": "gg Giants "},
+                {"chatAmount": 2, "mood": "negative", "moodColor": "hsla(321.1654, 66%, 69%, 1)", "time": 150, "keywords": "guants "},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(334.23398, 66%, 63%, 1)", "time": 160, "keywords": "giants Lucklento "},
+                {"chatAmount": 0, "mood": "negative", "moodColor": "hsla(334.23398, 66%, 63%, 1)", "time": 170, "keywords": ""},
+                {"chatAmount": 2, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 180, "keywords": "MOM GIANTS PogChamp/ "},
+                {"chatAmount": 7, "mood": "negative", "moodColor": "hsla(327.14956, 66%, 54%, 1)", "time": 190, "keywords": "FeelsBadMan clockwork giants ha gay haHAA rip "},
+                {"chatAmount": 2, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 200, "keywords": "play aggro deck Pls "},
+                {"chatAmount": 4, "mood": "neutral", "moodColor": "hsla(290, 66%, 63%, 1)", "time": 210, "keywords": "decklist "},
+                {"chatAmount": 9, "mood": "positive", "moodColor": "hsla(263.08437, 66%, 48%, 1)", "time": 220, "keywords": "MrYagut FeelsBadMan LOL Yagut LOL "},
+                {"chatAmount": 0, "mood": "positive", "moodColor": "hsla(263.08437, 66%, 48%, 1)", "time": 230, "keywords": ""},
+                {"chatAmount": 15, "mood": "positive", "moodColor": "hsla(245.19328000000002, 66%, 27%, 1)", "time": 240, "keywords": "overwhelming moar power kiss FeelsBadMan LEL kek p…mryagut xD puns Koldunya hand xDDDDD ex Love heh "},
+                {"chatAmount": 10, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 250, "keywords": ""},
+                {"chatAmount": 7, "mood": "positive", "moodColor": "hsla(253.71, 66%, 66%, 1)", "time": 260, "keywords": "Kolento"},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(333.92, 66%, 66%, 1)", "time": 270, "keywords": "MY EX NOW"},
+                {"chatAmount": 2, "mood": "negative", "moodColor": "hsla(304.44, 66%, 69%, 1)", "time": 280, "keywords": "wiener r9k FeelsGoodMan"},
+                {"chatAmount": 5, "mood": "positive", "moodColor": "hsla(267.52, 66%, 60%, 1)", "time": 290, "keywords": "gay mod PO Dreaaam"},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(300.33, 66%, 63%, 1)", "time": 300, "keywords": "stop spamming caps POE Ulforcalami Kripp"},
+                {"chatAmount": 5, "mood": "negative", "moodColor": "hsla(348.13, 66%, 69%, 1)", "time": 310, "keywords": ""},
+                {"chatAmount": 6, "mood": "neutral", "moodColor": "hsla(290, 66%, 57%, 1)", "time": 320, "keywords": "decklist https://kolentohs.imgur.com/ normal value Lovemesokripp"},
+                {"chatAmount": 7, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 330, "keywords": "emperor double discount bran"},
+                {"chatAmount": 9, "mood": "neutral", "moodColor": "hsla(290, 66%, 69%, 1)", "time": 340, "keywords": ""},
+                {"chatAmount": 10, "mood": "neutral", "moodColor": "hsla(290, 66%, 45%, 1)", "time": 350, "keywords": "smOrc"},
+                {"chatAmount": 14, "mood": "positive", "moodColor": "hsla(252.72528, 66%, 18%, 1)", "time": 360, "keywords": "juggler dont snipe JUGGLER perfect yuggler"},
+                {"chatAmount": 11, "mood": "negative", "moodColor": "hsla(335.24947, 66%, 42%, 1)", "time": 370, "keywords": "aggressor snipe reason agro Kolento"},
+                {"chatAmount": 8, "mood": "positive", "moodColor": "hsla(239.41422, 66%, 66%, 1)", "time": 380, "keywords": "great play "},
+                {"chatAmount": 5, "mood": "negative", "moodColor": "hsla(330.20849, 66%, 60%, 1)", "time": 390, "keywords": "Good Juggler "},
+                {"chatAmount": 3, "mood": "positive", "moodColor": "hsla(237.66576, 66%, 66%, 1)", "time": 400, "keywords": "CAUSE"},
+                {"chatAmount": 3, "mood": "neutral", "moodColor": "hsla(237.66576, 66%, 66%, 1)", "time": 410, "keywords": ""},
+                {"chatAmount": 4, "mood": "negative", "moodColor": "hsla(338.93, 66%, 63%, 1)", "time": 420, "keywords": "yagut hes normal value "},
+                {"chatAmount": 2, "mood": "negative", "moodColor": "hsla(347.8319, 66%, 69%, 1)", "time": 430, "keywords": "Poor Yagut"},
+                {"chatAmount": 6, "mood": "negative", "moodColor": "hsla(350.75328, 66%, 57%, 1)", "time": 440, "keywords": "PO MISSED FACE stop spamming caps Sewer scum "}
+            ]
+            ;
+
+    var xScale = d3.scale.ordinal()
+            .domain(d3.range(dataset.length))
+            .rangeRoundBands([0, w], 0.05);
+
+    var yAxisScale = d3.scale.linear()
+            .domain([0, d3.max(dataset, function(d) {return d.chatAmount;})])
+            .range([h-padding, 0]);
+    var yScale = d3.scale.linear()
+            .domain([0, d3.max(dataset, function(d) {return d.chatAmount;})])
+            .range([0, h-padding]);
+    var key = function(d) {
+        return d.time;
+    };
+
+    //Create SVG element
+    var svg = d3.select("#graph")
+            .append("svg")
+            .attr("width", w+padding)
+            .attr("height", h+padding);
+
+
+    //Create bars
+    svg.selectAll("rect")
+            .data(dataset, key)
+            .enter()
+            .append("rect")
+            .attr("x", function(d, i) {
+                return xScale(i)+padding;
+            })
+            .attr("y", function(d) {
+                return h - yScale(d.chatAmount);
+            })
+            .attr("width", xScale.rangeBand())
+            .attr("height", function(d) {
+                return yScale(d.chatAmount)-padding;
+            })
+            .attr("fill", function(d) {
+                return d.moodColor;
+            })
+
+        //Tooltip
+            .on("mouseover", function(d) {
+                //Get this bar's x/y values, then augment for the tooltip
+                var xPosition = parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
+                var yPosition = parseFloat(d3.select(this).attr("y")) + 14;
+                d3.select(this).attr("opacity", "0.5");
+
+                //Update Tooltip Position & value
+                d3.select("#tooltip")
+                        .style("left", xPosition + "px")
+                        .style("top", yPosition + "px")
+                        .select("#value")
+                        .text(d.keywords);
+                d3.select("#tooltip").classed("hidden", false);
+                //document.getElementById("keyword").innerText= d.keywords;
+                $("#keyword").text(d.keywords);
+                $("#screenshot").html('<img width=250px height=150px src="screens2/'+ d.time+'.png">');
+                //document.getElementById("screenshot").innerHTML =
+            })
+            .on("mouseout", function() {
+                //Remove the tooltip
+                d3.select("#tooltip").classed("hidden", true);
+                d3.select(this).attr("opacity", "1");
+                $("#keyword").text("");
+                $("#screenshot").html("");
+                //document.getElementById("keyword").innerText= "";
+                // document.getElementById("screenshot").innerHTML='';
+            })	;
+
+    //Create labels
+    svg.selectAll("text")
+            .data(dataset, key)
+            .enter()
+            .append("text")
+            .text(function(d) {
+                return d.both;
+            })
+            .attr("text-anchor", "middle")
+            .attr("x", function(d, i) {
+                return xScale(i) + xScale.rangeBand() / 2+padding;
+            })
+            .attr("y", function(d) {
+                return h - yScale(d.both) +padding;
+            })
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "11px")
+            .attr("fill", "white");
+    var xAxis = d3.svg.axis()
+            .scale(xScale)
+            .tickFormat(function(d) { return d + 1; })
+            .orient("bottom");
+    svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate("+padding+"," + (h-padding) + ")")
+            .call(xAxis);
+
+    var yAxis = d3.svg.axis()
+            .scale(yAxisScale)
+            .orient("left")
+            .ticks(5);
+    svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + padding + ",5)")
+            .call(yAxis);
+
+    svg.append("text")
+            .attr("class", "x label axis text")
+            .attr("text-anchor", "end")
+            .attr("x", w+padding)
+            .attr("y", h )
+            .text("Time (10 seconds) ");
+    svg.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "end")
+            .attr("y", 6)
+            .attr("dy", ".14em")
+        //.attr("x", 150)
+            .attr("transform", "rotate(-90)")
+            .text("Chat Amount (# messages)");
+
+
+</script>
